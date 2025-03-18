@@ -33,34 +33,57 @@ class TodosScreen extends ConsumerWidget {
                   );
                 } catch (_) {}
               },
-              child: ListView.builder(
-                key: ValueKey(query),
-                itemCount: todosCount.valueOrNull,
-                itemBuilder: (context, index) {
-                  final page = index ~/ Constants.pageSize + 1;
-                  final indexInPage = index % Constants.pageSize;
-                  final todos = ref.watch(
-                    fetchTodosProvider(page: page, title: query),
-                  );
-
-                  return todos.when(
-                    loading: () => const TodoListItemShimmer(),
-                    error:
-                        (error, _) => TodoListItemError(
-                          query: query,
-                          page: page,
-                          indexInPage: indexInPage,
-                          isLoading: todos.isLoading,
-                          error: error.toString(),
+              child: todosCount.when(
+                error: (error, stackTrace) {
+                  return Center(
+                    child: Column(
+                      children: [
+                        Text("Failed to fetch todos!"),
+                        ElevatedButton(
+                          child: Text("Retry"),
+                          onPressed: () {
+                            ref.invalidate(fetchTodosCountProvider);
+                          },
                         ),
-                    data: (data) {
-                      if (indexInPage >= data.length) {
-                        return null;
-                      } else {
-                        final todo = data[indexInPage];
+                      ],
+                    ),
+                  );
+                },
+                loading: () {
+                  return Center(child: RefreshProgressIndicator());
+                },
+                data: (itemCount) {
+                  return ListView.builder(
+                    key: ValueKey(query),
+                    reverse: true,
+                    itemCount: itemCount,
+                    itemBuilder: (context, index) {
+                      final page = index ~/ Constants.pageSize + 1;
+                      final indexInPage = index % Constants.pageSize;
+                      final todos = ref.watch(
+                        fetchTodosProvider(page: page, title: query),
+                      );
 
-                        return TodoListItem(todo: todo);
-                      }
+                      return todos.when(
+                        loading: () => const TodoListItemShimmer(),
+                        error:
+                            (error, _) => TodoListItemError(
+                              query: query,
+                              page: page,
+                              indexInPage: indexInPage,
+                              isLoading: todos.isLoading,
+                              error: error.toString(),
+                            ),
+                        data: (data) {
+                          if (indexInPage >= data.length) {
+                            return null;
+                          } else {
+                            final todo = data[indexInPage];
+
+                            return TodoListItem(todo: todo);
+                          }
+                        },
+                      );
                     },
                   );
                 },

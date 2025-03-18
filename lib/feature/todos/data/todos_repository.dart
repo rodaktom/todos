@@ -40,7 +40,7 @@ class TodosRepository {
           path: 'todos',
           queryParameters: {
             '_page': page.toString(),
-            '_per_page': Constants.pageSize.toString(),
+            '_limit': Constants.pageSize.toString(),
           },
         ).toString();
     final response = await client.get(uri, cancelToken: cancelToken);
@@ -62,7 +62,7 @@ class TodosRepository {
           queryParameters: {
             'q': title,
             '_page': page.toString(),
-            '_per_page': Constants.pageSize.toString(),
+            '_limit': Constants.pageSize.toString(),
           },
         ).toString();
     final response = await client.get(uri, cancelToken: cancelToken);
